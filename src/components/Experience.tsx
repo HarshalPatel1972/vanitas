@@ -25,25 +25,25 @@ declare global {
 
 const EntropyLogic = () => {
   const scroll = useScroll();
-  const setEntropyLevel = useStore((state) => state.setEntropyLevel);
+  const increaseEntropyTo = useStore((state) => state.increaseEntropyTo);
+  const isRepairing = useStore((state) => state.isRepairing);
 
-  useFrame(() => {
-    // Entropy from Time: very slow constant increase
-    // increaseEntropy(delta * 0.001); 
-
-    // Entropy from Scroll: based on scroll offset (0 to 1)
-    // We map scroll.offset directly to a portion of entropy or add to it.
-    // Let's make it so scroll position roughly correlates to entropy level 0-80%
-    // and time fills the rest.
+  useFrame((state, delta) => {
+    // If repairing, we might want to pause entropy or let it reset? 
+    // Prompt says "unusable". We will handle usability in UI overlay.
+    // Entropy logic: Irreversible increase based on scroll.
     
-    // For demo/prototype: Map scroll offset directly to entropy for visual testing
-    const targetEntropy = scroll.offset * 0.8; 
+    // Map scroll offset to 0-1 range roughly over the scroll distance
+    const targetEntropy = scroll.offset; 
     
-    // Smoothly interpolate current entropy to target (if we were strictly mapping)
-    // But store logic is additive in prompt description. 
+    // Only increase
+    increaseEntropyTo(targetEntropy);
+    
+    // Time based decay? No, "News is not infinite" -> decay implies healing.
+    // We only add entropy over time if active?
     // "Entropy increases based on Time Spent + Pixels Scrolled"
-    // Let's implement a simple version where we set it based on scroll for now to "Control" the rot.
-    setEntropyLevel(targetEntropy);
+    // Let's add a very small time factor:
+    // increaseEntropyTo(scroll.offset + state.clock.elapsedTime * 0.005);
   });
 
   return null;
@@ -51,18 +51,25 @@ const EntropyLogic = () => {
 
 const NewsFeed = () => {
   const { newsData, setNewsData } = useStore();
+  const { width } = useThree((state) => state.viewport);
+  
+  // Responsive scaling
+  const isMobile = width < 5;
+  const scale = isMobile ? 0.55 : 1;
+  const xOffset = isMobile ? 0 : 0; // centered
+  
+  // Optimization: reduce geometry segments on mobile if needed? 
+  // R3F handles prop updates well, but changing geometry args rebuilds mesh.
+  // We'll keep standard args for now but just scale.
 
   useEffect(() => {
-    // In real app, fetch from /api/news
-    // Here we use mock data
     setNewsData(MOCK_NEWS);
   }, [setNewsData]);
 
-  // Spacing between cards
-  const gap = 5; 
+  const gap = 4.5; 
   
   return (
-    <group position={[0, 0, 0]}>
+    <group position={[xOffset, 0, 0]} scale={[scale, scale, 1]}>
       {newsData.map((item, index) => (
         <NewsCard 
           key={index} 
@@ -76,53 +83,133 @@ const NewsFeed = () => {
 
 import { EffectComposer, Noise, Vignette } from '@react-three/postprocessing';
 import { Stars } from '@react-three/drei';
+import { useThree } from '@react-three/fiber';
+
+// Wrapper to control effects based on entropy
+const DynamicEffects = () => {
+    const entropy = useStore((state) => state.entropyLevel);
+    // We want 0 distortion at start.
+    // Noise opacity 0 -> 0.3 as entropy 0 -> 0.5
+    // Vignette opacity?
+    
+    // Note: Changing props on PostProcessing effects can be expensive if it causes shader recompilation.
+    // However, opacity on Noise is usually a uniform.
+    // Let's try controlling it. If laggy, we might need a custom shader pass or just step it.
+    
+    // Threshold: "clean 4k website" until scroll starts.
+    // Let's ramp it up quickly after 0.05 entropy.
+    
+    const noiseOpacity = Math.min(0.5, Math.max(0, (entropy - 0.05) * 0.8));
+    const vigDarkness = 0.5 + Math.min(0.6, entropy); // 0.5 to 1.1
+
+    if (entropy < 0.01) return null; // Completely clean start
+
+    return (
+        <EffectComposer>
+            <Noise opacity={noiseOpacity} />
+            <Vignette eskil={false} offset={0.1} darkness={vigDarkness} />
+        </EffectComposer>
+    );
+};
+
+const RepairOverlay = () => {
+    const entropy = useStore((state) => state.entropyLevel);
+    const startRepair = useStore((state) => state.startRepair);
+    const isRepairing = useStore((state) => state.isRepairing);
+    const checkRepairStatus = useStore((state) => state.checkRepairStatus);
+    const repairEndTime = useStore((state) => state.repairEndTime);
+    
+    const [timeLeft, setTimeLeft] = React.useState<string>("");
+
+    useEffect(() => {
+        checkRepairStatus();
+        const interval = setInterval(() => {
+             if (isRepairing && repairEndTime) {
+                 const remaining = repairEndTime - Date.now();
+                 if (remaining <= 0) {
+                     checkRepairStatus(); // Trigger completion
+                 } else {
+                     const minutes = Math.floor(remaining / 60000);
+                     const seconds = Math.floor((remaining % 60000) / 1000);
+                     setTimeLeft(`${minutes}m ${seconds}s`);
+                 }
+             }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [isRepairing, repairEndTime, checkRepairStatus]);
+
+    if (isRepairing) {
+        return (
+            <div className="absolute inset-0 z-50 bg-black flex flex-col items-center justify-center text-red-500 font-mono p-4">
+                <h1 className="text-4xl font-bold mb-4 glitch-text">SYSTEM RECOMPILING</h1>
+                <p className="text-xl mb-8">REALITY INTEGRITY RESTORING...</p>
+                <div className="text-6xl font-black">{timeLeft}</div>
+                <p className="mt-8 text-sm opacity-50">Please touch grass while you wait.</p>
+            </div>
+        );
+    }
+
+    // Show "Wield It" (Fix It) button if entropy is high (> 50%)
+    if (entropy > 0.5) {
+        return (
+            <button 
+                onClick={() => startRepair(60 * 60 * 1000)} // 1 hour
+                className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-40 bg-red-600 text-white font-bold py-3 px-8 rounded-none border border-white hover:bg-red-700 transition-colors uppercase tracking-widest animate-pulse"
+            >
+                WIELD REALITY (FIX)
+            </button>
+        );
+    }
+    
+    return null;
+};
 
 export default function Experience() {
+  const isRepairing = useStore((state) => state.isRepairing);
+
   return (
-    <div className="w-full h-screen bg-[#050505]">
+    <div className="w-full h-screen bg-[#050505] relative overflow-hidden">
+      {/* 3D Scene */}
+      {!isRepairing && (
       <Canvas
         camera={{ position: [0, 0, 5], fov: 45 }}
-        gl={{ antialias: false, alpha: false, stencil: false, depth: false }} // Optimization for postprocessing
-        dpr={[1, 1.5]} // Performance balance
+        gl={{ antialias: false, alpha: false, stencil: false, depth: true }}
+        dpr={[1, 1.5]} 
       >
         <color attach="background" args={['#050505']} />
         
-        {/* Ambient Atmosphere */}
-        <Stars radius={50} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+        {/* Stars fade in as entropy rises? Or just subtle bg? 
+            User wants "4k clean start". Stars are fine if subtle, but let's hide them initially if precise.
+            Let's keep them very faint or remove. Prompt said "4k clean". 
+            Let's assume simple black bg is cleanest.
+        */}
+        <Stars radius={50} depth={50} count={2000} factor={4} saturation={0} fade speed={1} />
         
         <Suspense fallback={null}>
-          <ScrollControls pages={MOCK_NEWS.length} damping={0.2} distance={1}>
+          <ScrollControls pages={MOCK_NEWS.length * 0.7} damping={0.2} distance={1}>
             <Scroll>
-              {/* Main Content moves with scroll? 
-                  drei Scroll component:
-                  <Scroll> -> content moves
-                  <Scroll html> -> html overlay moves
-                  
-                  Usually mapping 3D content to scroll:
-                  The <Scroll> container offsets its children.
-              */}
               <NewsFeed />
             </Scroll>
-            
             <EntropyLogic />
           </ScrollControls>
           <Preload all />
         </Suspense>
 
-        {/* Post Processing for Film Look */}
-        <EffectComposer>
-          <Noise opacity={0.3} />
-          <Vignette eskil={false} offset={0.1} darkness={1.1} />
-        </EffectComposer>
+        <DynamicEffects />
       </Canvas>
+      )}
+
+      {/* UI Overlays */}
+      <RepairOverlay />
       
-      {/* HTML Overlay for Logo/Header if needed */}
+      {!isRepairing && (
       <div className="absolute top-0 left-0 w-full p-8 pointer-events-none mix-blend-difference z-10">
         <h1 className="text-4xl font-bold uppercase tracking-tighter" style={{ fontFamily: 'Arial, sans-serif' }}>
           Vanitas
         </h1>
         <p className="text-xs font-mono mt-2">News is not infinite.</p>
       </div>
+      )}
     </div>
   );
 }
