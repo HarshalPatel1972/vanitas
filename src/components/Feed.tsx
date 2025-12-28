@@ -1,10 +1,8 @@
-
 import { ScrollControls, Scroll, useScroll } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 import { SocialCard } from './SocialCard'
 import { useStore } from '@/store/useStore'
-import * as THREE from 'three'
 
 interface Post {
     id: number
@@ -12,12 +10,38 @@ interface Post {
     text: string
 }
 
+// Curated images for visual impact
 const POSTS: Post[] = [
-    { id: 1, url: 'https://picsum.photos/seed/entropy1/800/600', text: '@user_01: Just living my best life #blessed' },
-    { id: 2, url: 'https://picsum.photos/seed/entropy2/800/600', text: '@dev_null: Why is everything melting? #glitch' },
-    { id: 3, url: 'https://picsum.photos/seed/entropy3/800/600', text: '@entropy_bot: System integrity at 40%...' },
-    { id: 4, url: 'https://picsum.photos/seed/entropy4/800/600', text: '@void_walker: The pixels are tasty.' },
-    { id: 5, url: 'https://picsum.photos/seed/entropy5/800/600', text: '@echo_location: Is anyone else seeing this?' },
+    { 
+        id: 1, 
+        url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80', 
+        text: '@void_architect · The beauty of digital decay' 
+    },
+    { 
+        id: 2, 
+        url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80', 
+        text: '@entropy_watcher · Systems fail. This is inevitable.' 
+    },
+    { 
+        id: 3, 
+        url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80', 
+        text: '@data_ghost · Nothing lasts. Not even pixels.' 
+    },
+    { 
+        id: 4, 
+        url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80', 
+        text: '@null_prophet · The feed consumes. The feed decays.' 
+    },
+    { 
+        id: 5, 
+        url: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80', 
+        text: '@static_dreamer · Watch it melt. Watch it burn.' 
+    },
+    { 
+        id: 6, 
+        url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80', 
+        text: '@bit_rot · Every scroll brings you closer to nothing.' 
+    },
 ]
 
 function FeedContent() {
@@ -27,20 +51,17 @@ function FeedContent() {
     useFrame(() => {
         const isRepairing = useStore.getState().isRepairing
         
-        // If repairing, force scroll to top
         if (isRepairing) {
             const current = scroll.el.scrollTop
             if (current > 1) {
-                scroll.el.scrollTop = current * 0.9 // Smooth scroll up
+                scroll.el.scrollTop = current * 0.92
             } else {
                 scroll.el.scrollTop = 0
             }
         }
 
-        // Map scroll offset (0 to 1) to decay level
         const offset = scroll.offset
         
-        // Only update store if value changed significantly (avoid 60fps updates)
         if (Math.abs(offset - lastDecayRef.current) > 0.001) {
             lastDecayRef.current = offset
             useStore.getState().setDecayLevel(offset)
@@ -55,7 +76,7 @@ function FeedContent() {
                     index={i}
                     url={post.url} 
                     text={post.text}
-                    position={[0, -i * 5, 0]} // Stack vertically
+                    position={[0, -i * 4.5, 0]}
                 />
             ))}
         </>
@@ -64,7 +85,7 @@ function FeedContent() {
 
 export function Feed() {
   return (
-    <ScrollControls pages={POSTS.length} damping={0.2}>
+    <ScrollControls pages={POSTS.length * 0.8} damping={0.15}>
       <Scroll>
         <FeedContent />
       </Scroll>
