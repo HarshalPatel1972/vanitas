@@ -49,15 +49,16 @@ const EntropyLogic = () => {
   return null;
 };
 
+// ... imports
+import { useThree } from '@react-three/fiber';
+
+// ... NewsFeed definition ...
 const NewsFeed = () => {
+    // ... setup
   const { newsData, setNewsData } = useStore();
   const { width } = useThree((state) => state.viewport);
   
   // Responsive Design Logic
-  // Mobile (portrait): viewport width is usually small (e.g. ~3 units at z=0 with default camera)
-  // we want the card (width=4) to fit well, maybe 90% of screen width.
-  // Desktop: we want scale 1 (fixed size).
-  
   const isMobile = width < 5;
   const responsiveScale = isMobile ? (width * 0.9) / 4 : 1;
   
@@ -79,8 +80,8 @@ const NewsFeed = () => {
     </group>
   );
 };
+// removed the duplicate import useThree at bottom
 
-import { useThree } from '@react-three/fiber';
 
 // ... (other imports)
 
