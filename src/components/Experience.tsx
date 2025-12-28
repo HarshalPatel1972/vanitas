@@ -74,15 +74,21 @@ const NewsFeed = () => {
   );
 };
 
+import { EffectComposer, Noise, Vignette } from '@react-three/postprocessing';
+import { Stars } from '@react-three/drei';
+
 export default function Experience() {
   return (
     <div className="w-full h-screen bg-[#050505]">
       <Canvas
         camera={{ position: [0, 0, 5], fov: 45 }}
-        gl={{ antialias: true, alpha: false }}
-        dpr={[1, 2]} // Optimize pixel ratio
+        gl={{ antialias: false, alpha: false, stencil: false, depth: false }} // Optimization for postprocessing
+        dpr={[1, 1.5]} // Performance balance
       >
         <color attach="background" args={['#050505']} />
+        
+        {/* Ambient Atmosphere */}
+        <Stars radius={50} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
         
         <Suspense fallback={null}>
           <ScrollControls pages={MOCK_NEWS.length} damping={0.2} distance={1}>
@@ -102,6 +108,12 @@ export default function Experience() {
           </ScrollControls>
           <Preload all />
         </Suspense>
+
+        {/* Post Processing for Film Look */}
+        <EffectComposer>
+          <Noise opacity={0.3} />
+          <Vignette eskil={false} offset={0.1} darkness={1.1} />
+        </EffectComposer>
       </Canvas>
       
       {/* HTML Overlay for Logo/Header if needed */}

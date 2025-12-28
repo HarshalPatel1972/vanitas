@@ -55,15 +55,9 @@ export const NewsCard: React.FC<NewsCardProps> = ({ item, position }) => {
         anchorX="left"
         anchorY="top"
         maxWidth={3.8}
-        font="https://fonts.gstatic.com/s/playfairdisplay/v30/nuFvD-vYSZviVYUb_rj3ij__anPXJzDwcbmjWBN2PKdFvXDXbtM.woff" // Online URL for Playfair or local
+        // font URL removed for stability
       >
         {item.title}
-        {/* We can try to use custom material here, but might break SDF rendering. 
-            For now, let's just keep standard text material but maybe colorize/glitch via props later. 
-            Detailed shader on text is Phase 3 really, creating the shader was Phase 3.
-            If I want to enforce Phase 3 logic now:
-        */}
-        {/* <vanitasMeltMaterial attach="material" ref={textMaterialRef} uTexture={null} /> */}
       </Text>
 
       {/* Source & Date */}
@@ -73,7 +67,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({ item, position }) => {
         color="#FF2A2A"
         anchorX="left"
         anchorY="top"
-        font="https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0Pn5.woff" // JetBrains Mono
+        // font URL removed for stability
       >
         {`${item.source} • ${item.date}`}
       </Text>
