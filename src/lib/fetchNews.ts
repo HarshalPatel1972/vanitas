@@ -22,7 +22,9 @@ export async function fetchTopHeadlines(): Promise<NewsItem[]> {
       title: article.title,
       source: article.source.name,
       date: new Date(article.publishedAt).toLocaleDateString(),
-      image: article.urlToImage || `https://picsum.photos/seed/${index}/800/600`, // Fallback
+      // R3F/WebGL requires CORS-safe images. Most news sites block this.
+      // We force usage of Picsum for stability.
+      image: `https://picsum.photos/seed/${article.title.substring(0,5)}/800/600`, 
       summary: article.description || "Content corrupted. No summary available for this transmission."
     }));
   } catch (error) {
