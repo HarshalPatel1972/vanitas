@@ -62,7 +62,7 @@ export function SocialCard({ position, url, text, index }: SocialCardProps) {
           color="#E0E0E0" // Bone White
           anchorX="center"
           anchorY="top"
-          font="https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPVmUsaaDhw.woff2"
+          font="https://fonts.gstatic.com/s/jetbrainsmono/v13/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPVmUsaaDhw.woff"
           letterSpacing={0.05}
           maxWidth={1.1}
           textAlign="center"
@@ -77,7 +77,7 @@ export function SocialCard({ position, url, text, index }: SocialCardProps) {
           color="#444444" 
           anchorX="right"
           anchorY="top"
-          font="https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPVmUsaaDhw.woff2"
+          font="https://fonts.gstatic.com/s/jetbrainsmono/v13/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPVmUsaaDhw.woff"
        >
           {String(index + 1).padStart(2, '0')}
       </Text>

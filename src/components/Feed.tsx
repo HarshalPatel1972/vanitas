@@ -5,18 +5,18 @@ import { useRef } from 'react'
 import { SocialCard } from './SocialCard'
 import { useStore } from '@/store/useStore'
 
-// High-end, Fashion/Clinical Photography (Unsplash Source)
+// Reliable Image Sources
 const POSTS = [
-    { id: 1, url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80', text: 'Subject 001: The Gaze' },
-    { id: 2, url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80', text: 'Subject 002: Isolation' },
-    { id: 3, url: 'https://images.unsplash.com/photo-1542206395-9feb3edaa68d?w=800&q=80', text: 'Subject 003: Structure' },
-    { id: 4, url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80', text: 'Subject 004: Identity' },
+    { id: 1, url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80', text: 'Subject 001: Gaze' },
+    { id: 2, url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80', text: 'Subject 002: Iso' },
+    { id: 3, url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80', text: 'Subject 003: Tech' },
+    { id: 4, url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80', text: 'Subject 004: Face' },
     { id: 5, url: 'https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&q=80', text: 'Subject 005: Form' },
     { id: 6, url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=80', text: 'Subject 006: Void' },
-    { id: 7, url: 'https://images.unsplash.com/photo-1488161628813-994252600572?w=800&q=80', text: 'Subject 007: Fade' },
-    { id: 8, url: 'https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?w=800&q=80', text: 'Subject 008: Echo' },
-    { id: 9, url: 'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=800&q=80', text: 'Subject 009: Static' },
-    { id: 10, url: 'https://images.unsplash.com/photo-1517423568366-697553540371?w=800&q=80', text: 'Subject 010: End' },
+    { id: 7, url: 'https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?w=800&q=80', text: 'Subject 007: Echo' },
+    { id: 8, url: 'https://images.unsplash.com/photo-1517423568366-697553540371?w=800&q=80', text: 'Subject 008: End' },
+    { id: 9, url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80', text: 'Subject 009: Null' },
+    { id: 10, url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80', text: 'Subject 010: Final' },
 ]
 
 function FeedContent() {
