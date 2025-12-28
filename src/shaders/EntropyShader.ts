@@ -39,7 +39,7 @@ varying vec2 vUv;
 varying float vNoise;
 uniform float uTime;
 uniform float uDecay;
-uniform float uScrollProps;
+uniform float uExplode; // 0.0 to 1.0
 
 ${simplexNoise3D}
 
@@ -47,31 +47,41 @@ void main() {
   vUv = uv;
   vec3 pos = position;
 
-  // Initial Wobble/Alive feel
+  // Initial Wobble
   float noiseVal = snoise(vec2(pos.x * 1.5, uTime * 0.3));
   vNoise = noiseVal;
   
-  // Phase 3: The "Lag" Drag (Vertex Distortion) based on Decay
-  // Simulating drag: bottom vertices lag behind
+  // Phase 3: Lag
   if (uDecay > 0.0) {
-      // Simple approximation of lag - in reality would interact with scroll delta
       float lag = (1.0 - uv.y) * uDecay * 0.5;
-      pos.y -= sin(uTime * 2.0) * lag * 0.1; 
+      pos.y -= sin(uTime * 2.0) * lag * 0.2; 
   }
 
-  // Phase 4: Liquefaction (Vertex Displacement)
+  // Phase 4: Liquefaction
   if (uDecay > 0.6) {
       float meltStrength = (uDecay - 0.6) * 5.0; 
-      
-      // Major drip downwards
       float dripNoise = snoise(vec2(pos.x * 2.0, uTime * 0.5));
       pos.y -= meltStrength * (dripNoise * 0.5 + 0.5);
-      
-      // Structural collapse (x-axis random walk)
       pos.x += meltStrength * dripNoise * 0.2;
-      
-      // Push back so it looks like it's falling "in" or dissolving
       pos.z -= meltStrength * 0.5;
+  }
+
+  // Phase 5: The Collapse (Explosion)
+  if (uExplode > 0.0) {
+     // Scatter vertices
+     float explosionNoise = snoise(vec2(pos.x, pos.y) * 10.0 + uTime);
+     vec3 dir = vec3(
+         snoise(vec2(pos.y, uTime)),
+         snoise(vec2(pos.x, uTime)),
+         snoise(vec2(pos.z, uTime))
+     );
+     
+     pos += dir * uExplode * 5.0;
+     
+     // Randomize point size for depth
+     gl_PointSize = (1.0 - uExplode) * 5.0 + (random(uv) * 2.0);
+  } else {
+     gl_PointSize = 2.0;
   }
 
   gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
@@ -81,6 +91,7 @@ void main() {
 export const fragmentShader = `
 uniform float uTime;
 uniform float uDecay;
+uniform float uExplode;
 uniform sampler2D uTexture;
 varying vec2 vUv;
 varying float vNoise;
@@ -92,24 +103,22 @@ float random(vec2 st) {
 ${simplexNoise3D}
 
 void main() {
-  vec2 uv = vUv;
-  
-  // Phase 4: The Melt (Texture Distortion)
-  // We use snoise here for smooth liquid dripping
-  if (uDecay > 0.6) {
-      float meltFactor = (uDecay - 0.6) * 2.0;
-      
-      // Calculate drip offset using smooth noise
-      float drip = snoise(vec2(uv.x * 8.0, uTime * 0.5)) * 0.5 + 0.5;
-      drip *= meltFactor * 0.5;
-      
-      // Only affect things below the "melt line" which rises? 
-      // Or just global distortion:
-      uv.y -= drip;
+  // If exploded, render as simple dots or texture fragments
+  if (uExplode > 0.1) {
+      if (random(vUv * uTime) > (1.0 - uExplode)) discard;
   }
 
-  // Phase 5: Chromatic Aberration (Data Rot)
-  // Split channels based on decay
+  vec2 uv = vUv;
+  
+  // existing decay logic ...
+  // Phase 4: The Melt
+  if (uDecay > 0.6) {
+      float meltFactor = (uDecay - 0.6) * 2.0;
+      float drip = snoise(vec2(uv.x * 8.0, uTime * 0.5)) * 0.5 + 0.5;
+      uv.y -= drip * meltFactor * 0.5;
+  }
+
+  // Phase 5: Chromatic Aberration
   float r = texture2D(uTexture, uv + vec2(uDecay * 0.02, 0.0)).r;
   float g = texture2D(uTexture, uv).g;
   float b = texture2D(uTexture, uv - vec2(uDecay * 0.02, 0.0)).b;
@@ -119,25 +128,18 @@ void main() {
   if (uDecay > 0.0) {
       float desatStr = smoothstep(0.0, 0.4, uDecay);
       float gray = dot(color.rgb, vec3(0.299, 0.587, 0.114));
-      // Crush contrast for that "Brutalist" photocopy look
       vec3 bw = vec3(smoothstep(0.2, 0.8, gray));
       color.rgb = mix(color.rgb, bw, desatStr);
   }
 
-  // Phase 3: Digital Rot (Static/Grain)
+  // Phase 3: Digital Rot
   if (uDecay > 0.3) {
       float noiseStr = smoothstep(0.3, 0.7, uDecay);
       float whiteNoise = random(uv * uTime * 100.0);
-      
-      // Static Snow
       if (whiteNoise < noiseStr * 0.4) {
-         // Some pixels burn to white, some to black
          if (random(uv) > 0.5) color.rgb = vec3(1.0);
          else color.rgb = vec3(0.0);
       }
-      
-      // Alpha Rot (Eating holes)
-      // Use larger snoise for the "moth holes"
       float rotNoise = snoise(vec2(uv.x * 20.0, uv.y * 20.0 + uTime));
       if (rotNoise < (uDecay - 0.3) * 2.0 - 1.0) {
           discard;
@@ -149,6 +151,13 @@ void main() {
   if (edgeDist > 0.6 - (uDecay * 0.2)) {
       color.a *= smoothstep(0.05, 0.0, edgeDist - (0.5 - (uDecay * 0.2)));
   }
+  
+  // Collapse Fade
+  if (uExplode > 0.0) {
+      color.a *= (1.0 - uExplode);
+  }
+
+  if (color.a < 0.01) discard;
 
   gl_FragColor = color;
 }

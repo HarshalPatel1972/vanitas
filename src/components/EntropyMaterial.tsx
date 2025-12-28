@@ -8,6 +8,7 @@ const EntropyMaterialImpl = shaderMaterial(
   {
     uTime: 0,
     uDecay: 0,
+    uExplode: 0,
     uTexture: new THREE.Texture(),
   },
   vertexShader,

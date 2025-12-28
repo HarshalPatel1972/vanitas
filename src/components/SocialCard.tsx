@@ -24,33 +24,54 @@ export function SocialCard({ position, url, text, index }: SocialCardProps) {
     if (materialRef.current) {
         materialRef.current.uniforms.uTime.value += delta
         materialRef.current.uniforms.uDecay.value = decayLevel
+        // Calculate explosion level (starts at 0.9 decay)
+        const explode = Math.max(0, (decayLevel - 0.9) * 10)
+        materialRef.current.uniforms.uExplode.value = explode
     }
   })
 
+  // Use higher density geometry for better particle effects
+  const geomArgs: [number, number, number, number] = [1, 1, 64, 64]
+  const isExploding = decayLevel > 0.9
+
   return (
     <group position={position}>
-      {/* The Image/Content Mesh */}
-      <mesh ref={meshRef} scale={[4, 3, 1]}>
-        <planeGeometry args={[1, 1, 32, 32]} />
-        <entropyMaterial
-            ref={materialRef}
-            uTexture={texture}
-            transparent
-            side={THREE.DoubleSide}
-        />
-      </mesh>
+      {/* The Image/Content Mesh - Swaps to Points when exploding */}
+      {isExploding ? (
+        <points ref={meshRef as any} scale={[4, 3, 1]}>
+            <planeGeometry args={geomArgs} />
+            <entropyMaterial
+                ref={materialRef}
+                uTexture={texture}
+                transparent
+                depthWrite={false}
+            />
+        </points>
+      ) : (
+        <mesh ref={meshRef} scale={[4, 3, 1]}>
+            <planeGeometry args={geomArgs} />
+            <entropyMaterial
+                ref={materialRef}
+                uTexture={texture}
+                transparent
+                side={THREE.DoubleSide}
+            />
+        </mesh>
+      )}
       
-      {/* The Text Mesh */}
-      <Text
-        position={[0, -2, 0.1]}
-        fontSize={0.2}
-        color={decayLevel > 0.3 ? "#E0E0E0" : "#050505"} // Invert color as it decays? Or keep white on black.
-        anchorX="center"
-        anchorY="middle"
-        font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff"
-      >
-        {text}
-      </Text>
+      {/* The Text Mesh - Hide when exploding */}
+      {decayLevel < 0.9 && (
+        <Text
+            position={[0, -2, 0.1]}
+            fontSize={0.2}
+            color={decayLevel > 0.3 ? "#E0E0E0" : "#050505"} 
+            anchorX="center"
+            anchorY="middle"
+            font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff"
+        >
+            {text}
+        </Text>
+      )}
     </group>
   )
 }

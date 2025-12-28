@@ -21,12 +21,24 @@ const POSTS: Post[] = [
 
 function FeedContent() {
     const scroll = useScroll()
-    const setDecayLevel = useStore((state) => state.setDecayLevel)
+    const { setDecayLevel, isRepairing } = useStore((state) => ({
+        setDecayLevel: state.setDecayLevel,
+        isRepairing: state.isRepairing
+    }))
 
     useFrame(() => {
+        // If repairing, force scroll to top
+        if (isRepairing) {
+            const current = scroll.el.scrollTop
+            if (current > 1) {
+                scroll.el.scrollTop = current * 0.9 // Smooth scroll up
+            } else {
+                scroll.el.scrollTop = 0
+            }
+        }
+
         // Map scroll offset (0 to 1) to decay level
-        // We might want to make it 1 when at the bottom.
-        // scroll.offset is current / (total - viewport)
+        // we use range 0 to 1
         const offset = scroll.offset
         setDecayLevel(offset)
     })
