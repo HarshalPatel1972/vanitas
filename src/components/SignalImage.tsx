@@ -43,6 +43,7 @@ const SignalDecayScene = ({ src }: { src: string }) => {
     return (
         <mesh position={[0,0,0]}>
             <planeGeometry args={[1.7, 1]} />
+            {/* @ts-ignore - Dynamic element */}
             <signalDecayMaterial 
                 ref={materialRef} 
                 uTexture={texture}
