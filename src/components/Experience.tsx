@@ -138,7 +138,17 @@ const RepairOverlay = () => {
                 <h1 className="text-4xl font-bold mb-4 glitch-text">SYSTEM RECOMPILING</h1>
                 <p className="text-xl mb-8">REALITY INTEGRITY RESTORING...</p>
                 <div className="text-6xl font-black">{timeLeft}</div>
+                <div className="text-6xl font-black">{timeLeft}</div>
                 <p className="mt-8 text-sm opacity-50">Please touch grass while you wait.</p>
+                
+                {/* DEV ONLY: Quick Fix */}
+                <button 
+                    onClick={() => startRepair(100)} 
+                    className="absolute bottom-4 right-4 text-xs text-gray-800 hover:text-gray-500 uppercase"
+                    title="Dev: Instant Fix"
+                >
+                    [DEV: QUICK YIELD]
+                </button>
             </div>
         );
     }
@@ -146,12 +156,20 @@ const RepairOverlay = () => {
     // Show "Wield It" (Fix It) button if entropy is high (> 50%)
     if (entropy > 0.5) {
         return (
-            <button 
-                onClick={() => startRepair(60 * 60 * 1000)} // 1 hour
-                className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-40 bg-red-600 text-white font-bold py-3 px-8 rounded-none border border-white hover:bg-red-700 transition-colors uppercase tracking-widest animate-pulse"
-            >
-                WIELD REALITY (FIX)
-            </button>
+            <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 z-40 flex flex-col items-center gap-2">
+                <button 
+                    onClick={() => startRepair(60 * 60 * 1000)} // 1 hour
+                    className="bg-red-600 text-white font-bold py-3 px-8 rounded-none border border-white hover:bg-red-700 transition-colors uppercase tracking-widest animate-pulse"
+                >
+                    WIELD REALITY (FIX)
+                </button>
+                <button 
+                    onClick={() => startRepair(5000)} // 5 seconds
+                    className="text-xs text-gray-500 hover:text-white uppercase tracking-widest"
+                >
+                    [DEV: QUICK YIELD]
+                </button>
+            </div>
         );
     }
     
