@@ -1,6 +1,6 @@
 
 import { shaderMaterial } from '@react-three/drei'
-import { extend, ReactThreeFiber } from '@react-three/fiber'
+import { extend } from '@react-three/fiber'
 import * as THREE from 'three'
 import { fragmentShader, vertexShader } from '@/shaders/EntropyShader'
 
@@ -20,11 +20,7 @@ extend({ EntropyMaterial: EntropyMaterialImpl })
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      entropyMaterial: ReactThreeFiber.Object3DNode<THREE.ShaderMaterial, typeof EntropyMaterialImpl> & {
-          uTime?: number
-          uDecay?: number
-          uTexture?: THREE.Texture
-      }
+      entropyMaterial: any
     }
   }
 }
