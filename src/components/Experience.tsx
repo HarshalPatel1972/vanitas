@@ -85,13 +85,16 @@ const NewsFeed = () => {
 
 // ... (other imports)
 
+// ... imports
+import { Stars, Sparkles } from '@react-three/drei';
+
 // Wrapper to control effects based on entropy using CSS (Zero GPU Cost)
 const CSSDynamicEffects = () => {
     const entropy = useStore((state) => state.entropyLevel);
     
-    // Calculate CSS opacities
-    const noiseOpacity = Math.min(0.5, Math.max(0, (entropy - 0.05) * 0.8));
-    const vigOpacity = Math.min(0.9, entropy); // Darken edges as we rot
+    // Noise visibility optimization for dark backgrounds
+    const noiseOpacity = Math.min(0.15, Math.max(0.02, entropy * 0.3)); 
+    const vigOpacity = Math.min(0.8, entropy); 
     
     return (
         <>
@@ -100,22 +103,25 @@ const CSSDynamicEffects = () => {
                 className="absolute inset-0 pointer-events-none z-20 transition-opacity duration-300 ease-linear"
                 style={{
                     opacity: vigOpacity,
-                    background: 'radial-gradient(circle, transparent 40%, #000 130%)'
+                    background: 'radial-gradient(circle, transparent 50%, #000 150%)'
                 }}
             />
-            {/* Noise Overlay (CSS with SVG/Image) */}
+            {/* Noise Overlay - Fixed for Dark Mode */}
             <div 
-                className="absolute inset-0 pointer-events-none z-10 mix-blend-overlay opacity-0 transition-opacity duration-300 ease-linear"
+                className="absolute inset-0 pointer-events-none z-10 opacity-0 transition-opacity duration-300 ease-linear"
                 style={{
                     opacity: noiseOpacity,
-                    // Reliable noise source
-                    backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")', 
-                    filter: 'contrast(170%) brightness(100%)'
+                    backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")',
+                    filter: 'contrast(120%) brightness(120%)',
+                    mixBlendMode: 'plus-lighter' // Better for noise on dark bg
                 }}
             />
+            {/* Scanline/Grid effect for premium feel? Optional */}
         </>
     );
 };
+
+// ... CSSDynamicEffects ...
 
 const RepairOverlay = () => {
     const entropy = useStore((state) => state.entropyLevel);
@@ -190,34 +196,36 @@ export default function Experience() {
   const isRepairing = useStore((state) => state.isRepairing);
   
   return (
-    <div className="w-full h-screen bg-[#050505] relative overflow-hidden">
-        {/* CSS Effects Layer - Zero GPU Cost */}
+    <div className="w-full h-screen bg-[#050505] relative overflow-hidden font-sans">
+        {/* CSS Effects Layer */}
         <CSSDynamicEffects />
 
       {/* 3D Scene */}
       {!isRepairing && (
       <Canvas
-        camera={{ position: [0, 0, 5], fov: 45 }}
+        camera={{ position: [0, 0, 6], fov: 35 }} // Zoomed in slightly, simpler perspective
         gl={{ 
-            antialias: true, // Re-enable AA since we removed heavy post-processing
-            alpha: false, 
-            stencil: false, 
+            antialias: true,
+            alpha: false,
+            stencil: false,
             depth: true,
             powerPreference: "high-performance"
         }}
-        dpr={[1, 1.5]} 
+        dpr={[1, 2]} // Allow higher quality on powerful phones, R3F handles scaling
         performance={{ min: 0.5 }} 
       >
         <color attach="background" args={['#050505']} />
+        <fog attach="fog" args={['#050505', 5, 15]} /> {/* Depth Cue */}
         
-        {/* Stars removed for performance and 4k clean aesthetic. 
-            Background is pure void black as requested. 
-        */}
-        
-        <Suspense fallback={null}>
-          <ScrollControls pages={MOCK_NEWS.length * 0.7} damping={0.15} distance={1}>
+        {/* Subtle Environment Texture */}
+        <Stars radius={30} depth={20} count={800} factor={3} saturation={0} fade speed={0.5} />
+
+        <Suspense fallback={null}> 
+            {/* Note: In a real app we'd use a loader. For now, we fallback to null to avoid ugly pop-in, 
+                but we need to ensure textures load fast. */}
+          <ScrollControls pages={MOCK_NEWS.length * 0.7} damping={0.2} distance={1}>
             <Scroll>
-              <NewsFeed />
+               <NewsFeed />
             </Scroll>
             <EntropyLogic />
           </ScrollControls>
