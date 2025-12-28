@@ -2,14 +2,12 @@
 
 import { Scene } from '@/components/Scene'
 import { useStore } from '@/store/useStore'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 
 export default function Home() {
-  // Only subscribe reactively to isRepairing and setRepairing
-  const { isRepairing, setRepairing } = useStore((state) => ({
-      isRepairing: state.isRepairing,
-      setRepairing: state.setRepairing
-  }))
+  // Use INDIVIDUAL selectors to avoid object reference issues
+  const isRepairing = useStore((state) => state.isRepairing)
+  const setRepairing = useStore((state) => state.setRepairing)
   
   // Use local state for decayLevel display, updated via subscription
   const [displayDecay, setDisplayDecay] = useState(0)
