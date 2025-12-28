@@ -53,15 +53,14 @@ const NewsFeed = () => {
   const { newsData, setNewsData } = useStore();
   const { width } = useThree((state) => state.viewport);
   
-  // Responsive scaling
-  const isMobile = width < 5;
-  const scale = isMobile ? 0.55 : 1;
-  const xOffset = isMobile ? 0 : 0; // centered
+  // Responsive Design Logic
+  // Mobile (portrait): viewport width is usually small (e.g. ~3 units at z=0 with default camera)
+  // we want the card (width=4) to fit well, maybe 90% of screen width.
+  // Desktop: we want scale 1 (fixed size).
   
-  // Optimization: reduce geometry segments on mobile if needed? 
-  // R3F handles prop updates well, but changing geometry args rebuilds mesh.
-  // We'll keep standard args for now but just scale.
-
+  const isMobile = width < 5;
+  const responsiveScale = isMobile ? (width * 0.9) / 4 : 1;
+  
   useEffect(() => {
     setNewsData(MOCK_NEWS);
   }, [setNewsData]);
@@ -69,7 +68,7 @@ const NewsFeed = () => {
   const gap = 4.5; 
   
   return (
-    <group position={[xOffset, 0, 0]} scale={[scale, scale, 1]}>
+    <group position={[0, 0, 0]} scale={[responsiveScale, responsiveScale, 1]}>
       {newsData.map((item, index) => (
         <NewsCard 
           key={index} 
@@ -224,11 +223,11 @@ export default function Experience() {
       <RepairOverlay />
       
       {!isRepairing && (
-      <div className="absolute top-0 left-0 w-full p-8 pointer-events-none mix-blend-difference z-10">
-        <h1 className="text-4xl font-bold uppercase tracking-tighter" style={{ fontFamily: 'Arial, sans-serif' }}>
+      <div className="absolute top-0 left-0 w-full p-4 md:p-8 pointer-events-none mix-blend-difference z-10">
+        <h1 className="text-2xl md:text-4xl font-bold uppercase tracking-tighter" style={{ fontFamily: 'Arial, sans-serif' }}>
           Vanitas
         </h1>
-        <p className="text-xs font-mono mt-2">News is not infinite.</p>
+        <p className="text-[10px] md:text-xs font-mono mt-1 md:mt-2">News is not infinite.</p>
       </div>
       )}
     </div>
