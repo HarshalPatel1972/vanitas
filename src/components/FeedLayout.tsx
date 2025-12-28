@@ -5,15 +5,26 @@ import { useStore } from '../store/useStore';
 import { MOCK_NEWS } from '../lib/mockData';
 import { SignalImage } from './SignalImage';
 import { DecayingText } from './DecayingText';
+import { fetchTopHeadlines } from '../lib/fetchNews';
 
 export default function FeedLayout() {
-  const { setNewsData, setEntropyLevel, isLocked, checkLockout, quickYield, lockoutTime } = useStore();
+  const { newsData, setNewsData, setEntropyLevel, isLocked, checkLockout, quickYield, lockoutTime } = useStore();
   
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-     setNewsData(MOCK_NEWS);
      checkLockout();
+     
+     // Fetch Real News
+     const loadNews = async () => {
+         const realNews = await fetchTopHeadlines();
+         if (realNews.length > 0) {
+             setNewsData(realNews);
+         } else {
+             setNewsData(MOCK_NEWS); // Fallback
+         }
+     };
+     loadNews();
   }, [setNewsData, checkLockout]);
 
   // Scroll Listener for Entropy
@@ -23,7 +34,6 @@ export default function FeedLayout() {
         const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
         
         // Calculate 0 to 1 progress
-        // Ensure we can actually reach 1.0 logic
         const maxScroll = scrollHeight - clientHeight;
         const progress = Math.max(0, Math.min(1, scrollTop / maxScroll));
         
@@ -59,13 +69,9 @@ export default function FeedLayout() {
 
   return (
     <div className="w-full h-full relative flex flex-col">
-      {/* Header */}
-      <header className="fixed top-0 left-0 w-full h-16 border-b border-white/20 bg-black/80 backdrop-blur-md z-40 flex items-center justify-between px-6">
-        <h1 className="text-xl font-bold tracking-tighter text-white">VANITAS</h1>
-        <div className="flex gap-2 text-[10px] font-mono text-gray-400">
-            <span>SECURE_CONNECTION</span>
-            <span className="text-green-500">●</span>
-        </div>
+      {/* Header - Minimalist Update */}
+      <header className="fixed top-0 left-0 w-full h-16 border-b border-white/20 bg-black/80 backdrop-blur-md z-40 flex items-center justify-center px-6">
+        <h1 className="text-xl font-bold tracking-tighter text-white uppercase">VANITAS</h1>
       </header>
 
       {/* Scrollable Feed Container */}
@@ -74,18 +80,17 @@ export default function FeedLayout() {
         className="w-full h-full overflow-y-auto pt-24 pb-24 px-4 scroll-smooth"
       >
         <div className="max-w-2xl mx-auto space-y-12 md:space-y-24">
-            {MOCK_NEWS.map((item, i) => (
+            {newsData.map((item, i) => (
                 <div key={i} className="flex flex-col gap-4">
                     {/* The 3D Image Window */}
                     <div className="w-full aspect-video border border-white/10 bg-white/5 relative overflow-hidden">
-                        {/* 1.7 aspect ratio matches the plane geometry in SignalImage roughly */}
                         <SignalImage src={item.image} className="w-full h-full" />
                     </div>
                     
                     {/* The Text Info */}
                     <div className="flex flex-col gap-2">
                         <div className="flex justify-between items-baseline border-b border-white/10 pb-2 mb-2">
-                            <DecayingText text={`REF: ${item.source.toUpperCase()}`} type="meta" baseEntropy={0} />
+                            <DecayingText text={`REF: ${item.source ? item.source.toUpperCase() : 'UNKNOWN'}`} type="meta" baseEntropy={0} />
                             <DecayingText text={item.date} type="meta" baseEntropy={0} />
                         </div>
                         <DecayingText text={item.title} type="title" baseEntropy={0} />

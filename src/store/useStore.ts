@@ -30,14 +30,23 @@ export const useStore = create<AppState>((set, get) => ({
   lockoutTime: null,
 
   setEntropyLevel: (level) => {
-      // Entropy only goes UP? Or dynamic with scroll?
-      // Prompt says "Increases with scroll depth".
-      // Let's make it reflect current depth strictly for this version 'Signal Loss'.
-      set({ entropyLevel: Math.min(1.0, Math.max(0, level)) });
-      
-      if (get().entropyLevel >= 1.0 && !get().isLocked) {
-          get().triggerLockout();
-      }
+      // Irreversible Entropy: It only goes UP.
+      set((state) => {
+        const newEntropy = Math.min(1.0, Math.max(state.entropyLevel, level));
+        
+        // Trigger lockout if we hit 1.0 (and haven't already locked)
+        if (newEntropy >= 1.0 && !state.isLocked) {
+             // We can't call triggerLockout here easily without get(), let's use a side effect logic or just set directly.
+             // We need to trigger the side effect. 
+             // Best way: check in the component or use subscription.
+             // Or safer: just set properties.
+             const lockTime = Date.now() + (60 * 60 * 1000); // 1 hour
+             localStorage.setItem('vanitas_lockout', lockTime.toString());
+             return { entropyLevel: newEntropy, isLocked: true, lockoutTime: lockTime };
+        }
+        
+        return { entropyLevel: newEntropy };
+      });
   },
 
   setNewsData: (data) => set({ newsData: data }),
