@@ -1,3 +1,4 @@
+
 'use client'
 
 import { Canvas } from '@react-three/fiber'
@@ -7,21 +8,20 @@ import { Preload } from '@react-three/drei'
 
 export function Scene() {
   return (
-    <div className="h-screen w-full">
+    <div className="h-screen w-full relative z-10">
       <Canvas
-        camera={{ position: [0, 0, 6], fov: 50 }}
+        camera={{ position: [0, 0, 5], fov: 35 }} // Narrow FOV for editorial look
         gl={{ 
           antialias: true, 
           alpha: true,
           powerPreference: 'high-performance'
         }}
-        dpr={[1, 2]}
+        dpr={[1, 2]} // Handle retina screens
       >
         <color attach="background" args={['#050505']} />
         
-        {/* Subtle ambient lighting */}
-        <ambientLight intensity={0.5} />
-        <directionalLight position={[5, 5, 5]} intensity={0.3} />
+        {/* Minimal lighting - the shader handles most visuals */}
+        <ambientLight intensity={0.8} />
         
         <Suspense fallback={null}>
           <Feed />

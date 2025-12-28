@@ -1,3 +1,4 @@
+
 import { useRef, useMemo } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Text } from '@react-three/drei'
@@ -14,62 +15,38 @@ interface SocialCardProps {
 
 export function SocialCard({ position, url, text, index }: SocialCardProps) {
   const meshRef = useRef<THREE.Mesh>(null)
-  const pointsRef = useRef<THREE.Points>(null)
   const materialRef = useRef<THREE.ShaderMaterial>(null)
-  const textRef = useRef<any>(null)
-  const groupRef = useRef<THREE.Group>(null)
   
-  // Memoize texture loading
+  // High-res photography texture loading
   const texture = useMemo(() => {
     const loader = new THREE.TextureLoader()
     const tex = loader.load(url)
+    // Linear filter for smooth, high-end look
     tex.minFilter = THREE.LinearFilter
     tex.magFilter = THREE.LinearFilter
     return tex
   }, [url])
-  
-  const isExplodingRef = useRef(false)
 
   useFrame((state, delta) => {
-    const currentDecay = useStore.getState().decayLevel
+    // Read entropy strictly from store (transient update for performance)
+    const currentEntropy = useStore.getState().entropyLevel
     
     if (materialRef.current) {
         materialRef.current.uniforms.uTime.value += delta
-        materialRef.current.uniforms.uDecay.value = currentDecay
-        
-        const explode = Math.max(0, (currentDecay - 0.9) * 10)
-        materialRef.current.uniforms.uExplode.value = explode
-    }
-    
-    // Subtle floating animation
-    if (groupRef.current) {
-        groupRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 0.5 + index) * 0.05
-    }
-    
-    // Handle visibility
-    const shouldExplode = currentDecay > 0.9
-    if (shouldExplode !== isExplodingRef.current) {
-        isExplodingRef.current = shouldExplode
-        if (meshRef.current) meshRef.current.visible = !shouldExplode
-        if (pointsRef.current) pointsRef.current.visible = shouldExplode
-        if (textRef.current) textRef.current.visible = !shouldExplode
+        materialRef.current.uniforms.uEntropy.value = currentEntropy
     }
   })
 
-  const geomArgs: [number, number, number, number] = [1, 1, 64, 64]
+  // Geometry: 1.5 aspect ratio (vertical feed style). 
+  // High segment count (64x64) is CRITICAL for the vertex displacement/melt effect.
+  const geomArgs: [number, number, number, number] = [1.2, 1.6, 64, 64]
 
   return (
-    <group ref={groupRef} position={position}>
-      {/* Card Frame - subtle border effect */}
-      <mesh scale={[4.1, 3.1, 1]} position={[0, 0, -0.01]}>
-        <planeGeometry args={[1, 1]} />
-        <meshBasicMaterial color="#111111" transparent opacity={0.5} />
-      </mesh>
-      
-      {/* Main Image Mesh */}
-      <mesh ref={meshRef} scale={[4, 3, 1]}>
+    <group position={position}>
+      {/* 1. Main Content Card */}
+      <mesh ref={meshRef}>
           <planeGeometry args={geomArgs} />
-          {/* @ts-ignore */}
+          {/* @ts-ignore - custom shader material */}
           <entropyMaterial
               ref={materialRef}
               uTexture={texture}
@@ -78,44 +55,31 @@ export function SocialCard({ position, url, text, index }: SocialCardProps) {
           />
       </mesh>
       
-      {/* Points for explosion */}
-      <points ref={pointsRef} scale={[4, 3, 1]} visible={false}>
-          <planeGeometry args={geomArgs} />
-          {/* @ts-ignore */}
-          <entropyMaterial
-              uTexture={texture}
-              transparent
-              depthWrite={false}
-          />
-      </points>
-      
-      {/* Username/Text */}
+      {/* 2. Caption (Using Troika Text for crisp rendering) */}
       <Text
-          ref={textRef}
-          position={[0, -1.8, 0.1]}
-          fontSize={0.12}
-          color="#666666"
+          position={[0, -1.0, 0.05]}
+          fontSize={0.05}
+          color="#E0E0E0" // Bone White
           anchorX="center"
-          anchorY="middle"
+          anchorY="top"
           font="https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPVmUsaaDhw.woff2"
           letterSpacing={0.05}
-          maxWidth={3.5}
+          maxWidth={1.1}
+          textAlign="center"
       >
-          {text}
+          {text.toUpperCase()}
       </Text>
       
-      {/* Interaction hint */}
-      <Text
-          ref={textRef}
-          position={[-1.8, 1.3, 0.1]}
-          fontSize={0.06}
-          color="#333333"
-          anchorX="left"
-          anchorY="middle"
+      {/* 3. Subtle details (Index number) */}
+       <Text
+          position={[0.7, 0.7, 0.05]}
+          fontSize={0.03}
+          color="#444444" 
+          anchorX="right"
+          anchorY="top"
           font="https://fonts.gstatic.com/s/jetbrainsmono/v18/tDbY2o-flEEny0FZhsfKu5WU4zr3E_BX0PnT8RD8yKxjPVmUsaaDhw.woff2"
-          letterSpacing={0.1}
-      >
-          #{String(index + 1).padStart(2, '0')}
+       >
+          {String(index + 1).padStart(2, '0')}
       </Text>
     </group>
   )

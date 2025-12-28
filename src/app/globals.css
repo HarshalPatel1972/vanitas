@@ -1,114 +1,26 @@
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 :root {
-  --void-black: #050505;
-  --off-white: #E0E0E0;
-  --system-red: #FF3333;
-  --terminal-green: #00FF66;
-}
-
-* {
-  cursor: crosshair !important;
-}
-
-::selection {
-  background: var(--system-red);
-  color: var(--void-black);
-}
-
-html {
-  scroll-behavior: smooth;
+  --background: #050505;
+  --foreground: #E0E0E0;
 }
 
 body {
-  color: var(--off-white);
-  background: var(--void-black);
-  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
-  overflow: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  background: var(--background);
+  color: var(--foreground);
+  /* Hide scrollbar but keep functionality */
+  scrollbar-width: none; 
+  -ms-overflow-style: none;
 }
 
-/* Animations */
-@keyframes flicker {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
-  75% { opacity: 0.95; }
+body::-webkit-scrollbar { 
+    display: none; 
 }
 
-@keyframes glitch {
-  0% { transform: translate(0); }
-  20% { transform: translate(-2px, 2px); }
-  40% { transform: translate(-2px, -2px); }
-  60% { transform: translate(2px, 2px); }
-  80% { transform: translate(2px, -2px); }
-  100% { transform: translate(0); }
-}
-
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(100vh); }
-}
-
-.animate-flicker {
-  animation: flicker 3s infinite;
-}
-
-.animate-glitch {
-  animation: glitch 0.3s infinite;
-}
-
-/* Custom scrollbar - hidden but functional */
-::-webkit-scrollbar {
-  width: 0px;
-  background: transparent;
-}
-
-/* Text effects */
-.text-stroke {
-  -webkit-text-stroke: 1px currentColor;
-  -webkit-text-fill-color: transparent;
-}
-
-/* Glassmorphism */
-.glass {
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-}
-
-/* Glow effects */
-.glow-red {
-  box-shadow: 0 0 20px rgba(255, 51, 51, 0.3);
-}
-
-.glow-green {
-  box-shadow: 0 0 20px rgba(0, 255, 102, 0.3);
-}
-
-/* Button hover states */
-button {
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-button:hover {
-  transform: translateY(-1px);
-}
-
-button:active {
-  transform: translateY(0);
-}
-
-/* Terminal cursor blink */
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-.cursor-blink {
-  animation: blink 1s infinite;
+/* Smooth scrolling for the whole page */
+html {
+    scroll-behavior: smooth;
 }

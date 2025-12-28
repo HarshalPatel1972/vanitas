@@ -1,91 +1,60 @@
+
 import { ScrollControls, Scroll, useScroll } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
 import { useRef } from 'react'
 import { SocialCard } from './SocialCard'
 import { useStore } from '@/store/useStore'
 
-interface Post {
-    id: number
-    url: string
-    text: string
-}
-
-// Curated images for visual impact
-const POSTS: Post[] = [
-    { 
-        id: 1, 
-        url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80', 
-        text: '@void_architect · The beauty of digital decay' 
-    },
-    { 
-        id: 2, 
-        url: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&q=80', 
-        text: '@entropy_watcher · Systems fail. This is inevitable.' 
-    },
-    { 
-        id: 3, 
-        url: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=800&q=80', 
-        text: '@data_ghost · Nothing lasts. Not even pixels.' 
-    },
-    { 
-        id: 4, 
-        url: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80', 
-        text: '@null_prophet · The feed consumes. The feed decays.' 
-    },
-    { 
-        id: 5, 
-        url: 'https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&q=80', 
-        text: '@static_dreamer · Watch it melt. Watch it burn.' 
-    },
-    { 
-        id: 6, 
-        url: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80', 
-        text: '@bit_rot · Every scroll brings you closer to nothing.' 
-    },
+// High-end, Fashion/Clinical Photography (Unsplash Source)
+const POSTS = [
+    { id: 1, url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=80', text: 'Subject 001: The Gaze' },
+    { id: 2, url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&q=80', text: 'Subject 002: Isolation' },
+    { id: 3, url: 'https://images.unsplash.com/photo-1542206395-9feb3edaa68d?w=800&q=80', text: 'Subject 003: Structure' },
+    { id: 4, url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=80', text: 'Subject 004: Identity' },
+    { id: 5, url: 'https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&q=80', text: 'Subject 005: Form' },
+    { id: 6, url: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=80', text: 'Subject 006: Void' },
+    { id: 7, url: 'https://images.unsplash.com/photo-1488161628813-994252600572?w=800&q=80', text: 'Subject 007: Fade' },
+    { id: 8, url: 'https://images.unsplash.com/photo-1492633423870-43d1cd2775eb?w=800&q=80', text: 'Subject 008: Echo' },
+    { id: 9, url: 'https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=800&q=80', text: 'Subject 009: Static' },
+    { id: 10, url: 'https://images.unsplash.com/photo-1517423568366-697553540371?w=800&q=80', text: 'Subject 010: End' },
 ]
 
 function FeedContent() {
     const scroll = useScroll()
-    const lastDecayRef = useRef(0)
+    const lastEntropyRef = useRef(0)
 
     useFrame(() => {
-        const isRepairing = useStore.getState().isRepairing
-        
-        if (isRepairing) {
-            const current = scroll.el.scrollTop
-            if (current > 1) {
-                scroll.el.scrollTop = current * 0.92
-            } else {
-                scroll.el.scrollTop = 0
-            }
-        }
-
+        // Link scroll distance to entropy.
+        // Scroll 0 = Entropy 0.
+        // Scroll 100% = Entropy 1.0 (Total Destruction)
         const offset = scroll.offset
         
-        if (Math.abs(offset - lastDecayRef.current) > 0.001) {
-            lastDecayRef.current = offset
-            useStore.getState().setDecayLevel(offset)
+        // Update store only when changed significantly to avoid React render thrashing
+        if (Math.abs(offset - lastEntropyRef.current) > 0.0005) {
+            lastEntropyRef.current = offset
+            useStore.getState().setEntropyLevel(offset)
         }
     })
 
     return (
-        <>
+        <group position={[0, 0, 0]}>
             {POSTS.map((post, i) => (
                 <SocialCard 
                     key={post.id}
                     index={i}
                     url={post.url} 
                     text={post.text}
-                    position={[0, -i * 4.5, 0]}
+                    position={[0, -i * 2.5, 0]} // Vertical stacking with generous whitespace
                 />
             ))}
-        </>
+        </group>
     )
 }
 
 export function Feed() {
   return (
-    <ScrollControls pages={POSTS.length * 0.8} damping={0.15}>
+    // Damping 0.1 for that heavy, "luxurious" inertial feel
+    <ScrollControls pages={POSTS.length * 0.4} damping={0.1}>
       <Scroll>
         <FeedContent />
       </Scroll>

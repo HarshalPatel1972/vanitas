@@ -2,15 +2,15 @@
 import { create } from 'zustand'
 
 interface State {
-  decayLevel: number
-  setDecayLevel: (level: number) => void
-  isRepairing: boolean
-  setRepairing: (status: boolean) => void
+  entropyLevel: number
+  setEntropyLevel: (level: number) => void
+  isRecompiling: boolean
+  setIsRecompiling: (status: boolean) => void
 }
 
 export const useStore = create<State>((set) => ({
-  decayLevel: 0,
-  setDecayLevel: (level) => set({ decayLevel: level }),
-  isRepairing: false,
-  setRepairing: (status) => set({ isRepairing: status }),
+  entropyLevel: 0,
+  setEntropyLevel: (level) => set({ entropyLevel: level }),
+  isRecompiling: false,
+  setIsRecompiling: (status) => set({ isRecompiling: status }),
 }))
