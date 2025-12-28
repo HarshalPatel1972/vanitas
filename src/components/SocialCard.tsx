@@ -1,7 +1,7 @@
 
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { useFrame } from '@react-three/fiber'
-import { Image, Text } from '@react-three/drei'
+import { Text } from '@react-three/drei'
 import * as THREE from 'three'
 import { useStore } from '@/store/useStore'
 import '@/components/EntropyMaterial' // Register the material
@@ -15,15 +15,15 @@ interface SocialCardProps {
 
 export function SocialCard({ position, url, text, index }: SocialCardProps) {
   const meshRef = useRef<THREE.Mesh>(null)
+  const pointsRef = useRef<THREE.Points>(null)
   const materialRef = useRef<THREE.ShaderMaterial>(null)
-  // Remove reactive subscription to prevent per-frame re-renders
-  // const decayLevel = useStore((state) => state.decayLevel) 
+  const textRef = useRef<any>(null)
   
   const textureLoader = new THREE.TextureLoader()
   const texture = textureLoader.load(url)
   
-  // Local state for explosion to trigger React update only when necessary
-  const [isExploding, setIsExploding] = useState(false)
+  // Use refs to track state without causing re-renders
+  const isExplodingRef = useRef(false)
 
   useFrame((state, delta) => {
     // Read directly from store without causing re-render
@@ -38,9 +38,16 @@ export function SocialCard({ position, url, text, index }: SocialCardProps) {
         materialRef.current.uniforms.uExplode.value = explode
     }
     
-    // Only update React state if crossing the threshold
-    if (currentDecay > 0.9 && !isExploding) setIsExploding(true)
-    if (currentDecay <= 0.9 && isExploding) setIsExploding(false)
+    // Handle visibility imperatively without React state
+    const shouldExplode = currentDecay > 0.9
+    
+    if (shouldExplode !== isExplodingRef.current) {
+        isExplodingRef.current = shouldExplode
+        // Toggle visibility imperatively
+        if (meshRef.current) meshRef.current.visible = !shouldExplode
+        if (pointsRef.current) pointsRef.current.visible = shouldExplode
+        if (textRef.current) textRef.current.visible = !shouldExplode
+    }
   })
 
   // Use higher density geometry for better particle effects
@@ -48,44 +55,41 @@ export function SocialCard({ position, url, text, index }: SocialCardProps) {
 
   return (
     <group position={position}>
-      {/* The Image/Content Mesh - Swaps to Points when exploding */}
-      {isExploding ? (
-        <points ref={meshRef as any} scale={[4, 3, 1]}>
-            <planeGeometry args={geomArgs} />
-            {/* @ts-ignore */}
-            <entropyMaterial
-                ref={materialRef}
-                uTexture={texture}
-                transparent
-                depthWrite={false}
-            />
-        </points>
-      ) : (
-        <mesh ref={meshRef} scale={[4, 3, 1]}>
-            <planeGeometry args={geomArgs} />
-            {/* @ts-ignore */}
-            <entropyMaterial
-                ref={materialRef}
-                uTexture={texture}
-                transparent
-                side={THREE.DoubleSide}
-            />
-        </mesh>
-      )}
+      {/* Mesh (visible when not exploding) */}
+      <mesh ref={meshRef} scale={[4, 3, 1]}>
+          <planeGeometry args={geomArgs} />
+          {/* @ts-ignore */}
+          <entropyMaterial
+              ref={materialRef}
+              uTexture={texture}
+              transparent
+              side={THREE.DoubleSide}
+          />
+      </mesh>
       
-      {/* The Text Mesh - Hide when exploding */}
-      {!isExploding && (
-        <Text
-            position={[0, -2, 0.1]}
-            fontSize={0.2}
-            color="#E0E0E0" 
-            anchorX="center"
-            anchorY="middle"
-            font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff"
-        >
-            {text}
-        </Text>
-      )}
+      {/* Points (visible when exploding) - starts hidden */}
+      <points ref={pointsRef} scale={[4, 3, 1]} visible={false}>
+          <planeGeometry args={geomArgs} />
+          {/* @ts-ignore */}
+          <entropyMaterial
+              uTexture={texture}
+              transparent
+              depthWrite={false}
+          />
+      </points>
+      
+      {/* The Text Mesh */}
+      <Text
+          ref={textRef}
+          position={[0, -2, 0.1]}
+          fontSize={0.2}
+          color="#E0E0E0" 
+          anchorX="center"
+          anchorY="middle"
+          font="https://fonts.gstatic.com/s/inter/v12/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff"
+      >
+          {text}
+      </Text>
     </group>
   )
 }

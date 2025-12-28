@@ -2,15 +2,34 @@
 
 import { Scene } from '@/components/Scene'
 import { useStore } from '@/store/useStore'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 export default function Home() {
-  const { decayLevel, isRepairing, setRepairing } = useStore((state) => ({
-      decayLevel: state.decayLevel,
+  // Only subscribe reactively to isRepairing and setRepairing
+  const { isRepairing, setRepairing } = useStore((state) => ({
       isRepairing: state.isRepairing,
       setRepairing: state.setRepairing
   }))
+  
+  // Use local state for decayLevel display, updated via subscription
+  const [displayDecay, setDisplayDecay] = useState(0)
+  const [showRepairButton, setShowRepairButton] = useState(false)
   const [logs, setLogs] = useState<string[]>([])
+
+  // Subscribe to decayLevel changes with throttling
+  useEffect(() => {
+    let lastUpdate = 0
+    const unsubscribe = useStore.subscribe((state) => {
+      const now = Date.now()
+      // Throttle UI updates to ~10fps for the decay display
+      if (now - lastUpdate > 100) {
+        lastUpdate = now
+        setDisplayDecay(state.decayLevel)
+        setShowRepairButton(state.decayLevel > 0.95)
+      }
+    })
+    return () => unsubscribe()
+  }, [])
 
   useEffect(() => {
       if (isRepairing) {
@@ -50,11 +69,11 @@ export default function Home() {
 
       <div className="absolute top-4 left-4 z-10 font-mono text-xs opacity-50 pointer-events-none mix-blend-difference">
         <p>ENTROPY_OS v0.1</p>
-        <p>DECAY_LEVEL: {decayLevel.toFixed(3)}</p>
+        <p>DECAY_LEVEL: {displayDecay.toFixed(3)}</p>
       </div>
 
       {/* REPAIR BUTTON (Only at Max Entropy) */}
-      {!isRepairing && decayLevel > 0.95 && (
+      {!isRepairing && showRepairButton && (
         <div className="absolute inset-0 flex items-center justify-center z-20 bg-black/50 backdrop-blur-sm animate-in fade-in duration-1000">
             <button 
                 onClick={() => setRepairing(true)}

@@ -1,6 +1,7 @@
 
 import { ScrollControls, Scroll, useScroll } from '@react-three/drei'
 import { useFrame } from '@react-three/fiber'
+import { useRef } from 'react'
 import { SocialCard } from './SocialCard'
 import { useStore } from '@/store/useStore'
 import * as THREE from 'three'
@@ -21,12 +22,11 @@ const POSTS: Post[] = [
 
 function FeedContent() {
     const scroll = useScroll()
-    const { setDecayLevel, isRepairing } = useStore((state) => ({
-        setDecayLevel: state.setDecayLevel,
-        isRepairing: state.isRepairing
-    }))
+    const lastDecayRef = useRef(0)
 
     useFrame(() => {
+        const isRepairing = useStore.getState().isRepairing
+        
         // If repairing, force scroll to top
         if (isRepairing) {
             const current = scroll.el.scrollTop
@@ -38,9 +38,13 @@ function FeedContent() {
         }
 
         // Map scroll offset (0 to 1) to decay level
-        // we use range 0 to 1
         const offset = scroll.offset
-        setDecayLevel(offset)
+        
+        // Only update store if value changed significantly (avoid 60fps updates)
+        if (Math.abs(offset - lastDecayRef.current) > 0.001) {
+            lastDecayRef.current = offset
+            useStore.getState().setDecayLevel(offset)
+        }
     })
 
     return (
