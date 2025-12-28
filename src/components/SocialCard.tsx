@@ -40,6 +40,7 @@ export function SocialCard({ position, url, text, index }: SocialCardProps) {
       {isExploding ? (
         <points ref={meshRef as any} scale={[4, 3, 1]}>
             <planeGeometry args={geomArgs} />
+            {/* @ts-ignore */}
             <entropyMaterial
                 ref={materialRef}
                 uTexture={texture}
@@ -50,6 +51,7 @@ export function SocialCard({ position, url, text, index }: SocialCardProps) {
       ) : (
         <mesh ref={meshRef} scale={[4, 3, 1]}>
             <planeGeometry args={geomArgs} />
+            {/* @ts-ignore */}
             <entropyMaterial
                 ref={materialRef}
                 uTexture={texture}
