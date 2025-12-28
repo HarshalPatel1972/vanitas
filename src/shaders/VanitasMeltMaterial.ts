@@ -57,6 +57,7 @@ const vertexShader = `
 `;
 
 const fragmentShader = `
+  precision mediump float;
   uniform sampler2D uTexture;
   uniform float uEntropy;
   varying vec2 vUv;

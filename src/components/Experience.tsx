@@ -80,28 +80,39 @@ const NewsFeed = () => {
   );
 };
 
-import { EffectComposer, Noise, Vignette } from '@react-three/postprocessing';
-import { Stars } from '@react-three/drei';
 import { useThree } from '@react-three/fiber';
 
-// Wrapper to control effects based on entropy
-const DynamicEffects = () => {
+// ... (other imports)
+
+// Wrapper to control effects based on entropy using CSS (Zero GPU Cost)
+const CSSDynamicEffects = () => {
     const entropy = useStore((state) => state.entropyLevel);
     
-    // Smooth ramp up
-    // We keep the Composer mounted but set opacity/blend to 0 effectively
-    // However, some effects don't support "enabled" prop easily.
-    // Ideally we use a manually controlled pass, but for speed:
-    // We accept small overhead of composer being present, but noise opacity 0 is cheap.
-    
+    // Calculate CSS opacities
     const noiseOpacity = Math.min(0.5, Math.max(0, (entropy - 0.05) * 0.8));
-    const vigDarkness = 0.5 + Math.min(0.6, entropy); // 0.5 to 1.1
-
+    const vigOpacity = Math.min(0.9, entropy); // Darken edges as we rot
+    
     return (
-        <EffectComposer enabled={entropy > 0.01}>
-            <Noise opacity={noiseOpacity} />
-            <Vignette eskil={false} offset={0.1} darkness={vigDarkness} />
-        </EffectComposer>
+        <>
+            {/* Vignette Overlay (CSS Radial Gradient) */}
+            <div 
+                className="absolute inset-0 pointer-events-none z-20 transition-opacity duration-300 ease-linear"
+                style={{
+                    opacity: vigOpacity,
+                    background: 'radial-gradient(circle, transparent 40%, #000 130%)'
+                }}
+            />
+            {/* Noise Overlay (CSS with SVG/Image) */}
+            <div 
+                className="absolute inset-0 pointer-events-none z-10 mix-blend-overlay opacity-0 transition-opacity duration-300 ease-linear"
+                style={{
+                    opacity: noiseOpacity,
+                    // Reliable noise source
+                    backgroundImage: 'url("https://grainy-gradients.vercel.app/noise.svg")', 
+                    filter: 'contrast(170%) brightness(100%)'
+                }}
+            />
+        </>
     );
 };
 
@@ -174,30 +185,27 @@ const RepairOverlay = () => {
     return null;
 };
 
-// ... (other imports)
-
 export default function Experience() {
   const isRepairing = useStore((state) => state.isRepairing);
   
-  // Dynamic DPR based on device capabilities (simplistic approach: limit to 1.5 on high DPI, 1 on others)
-  // In R3F, dpr prop can take a range [min, max]. [1, 1.5] is usually safe.
-  // For lagging mobile, forcing [1, 1] might help.
-  
   return (
     <div className="w-full h-screen bg-[#050505] relative overflow-hidden">
+        {/* CSS Effects Layer - Zero GPU Cost */}
+        <CSSDynamicEffects />
+
       {/* 3D Scene */}
       {!isRepairing && (
       <Canvas
         camera={{ position: [0, 0, 5], fov: 45 }}
         gl={{ 
-            antialias: false, 
+            antialias: true, // Re-enable AA since we removed heavy post-processing
             alpha: false, 
             stencil: false, 
             depth: true,
-            powerPreference: "high-performance" // Hint to browser
+            powerPreference: "high-performance"
         }}
         dpr={[1, 1.5]} 
-        performance={{ min: 0.5 }} // Allow downgrading
+        performance={{ min: 0.5 }} 
       >
         <color attach="background" args={['#050505']} />
         
@@ -206,7 +214,7 @@ export default function Experience() {
         */}
         
         <Suspense fallback={null}>
-          <ScrollControls pages={MOCK_NEWS.length * 0.7} damping={0.15} distance={1}> {/* Less damping for snappier mobile feel? Or more? 0.2 is standard. */}
+          <ScrollControls pages={MOCK_NEWS.length * 0.7} damping={0.15} distance={1}>
             <Scroll>
               <NewsFeed />
             </Scroll>
@@ -214,8 +222,6 @@ export default function Experience() {
           </ScrollControls>
           <Preload all />
         </Suspense>
-
-        <DynamicEffects />
       </Canvas>
       )}
 
