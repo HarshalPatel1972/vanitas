@@ -40,9 +40,9 @@ export const NewsCard: React.FC<NewsCardProps> = ({ item, position }) => {
 
   return (
     <group position={position}>
-      {/* Image Plane - Optimized Geometry */}
+      {/* Image Plane - Mobile Optimized Geometry */}
       <mesh position={[0, 0, 0]}>
-        <planeGeometry args={[4, 3, 20, 20]} />
+        <planeGeometry args={[4, 3, 16, 16]} />
         {/* @ts-expect-error - Custom element */}
         <vanitasMeltMaterial ref={imageMaterialRef} uTexture={texture} transparent />
       </mesh>

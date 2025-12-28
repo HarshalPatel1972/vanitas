@@ -175,31 +175,39 @@ const RepairOverlay = () => {
     return null;
 };
 
+// ... (other imports)
+
 export default function Experience() {
   const isRepairing = useStore((state) => state.isRepairing);
-
+  
+  // Dynamic DPR based on device capabilities (simplistic approach: limit to 1.5 on high DPI, 1 on others)
+  // In R3F, dpr prop can take a range [min, max]. [1, 1.5] is usually safe.
+  // For lagging mobile, forcing [1, 1] might help.
+  
   return (
     <div className="w-full h-screen bg-[#050505] relative overflow-hidden">
       {/* 3D Scene */}
       {!isRepairing && (
       <Canvas
         camera={{ position: [0, 0, 5], fov: 45 }}
-        gl={{ antialias: false, alpha: false, stencil: false, depth: true }}
+        gl={{ 
+            antialias: false, 
+            alpha: false, 
+            stencil: false, 
+            depth: true,
+            powerPreference: "high-performance" // Hint to browser
+        }}
         dpr={[1, 1.5]} 
+        performance={{ min: 0.5 }} // Allow downgrading
       >
         <color attach="background" args={['#050505']} />
         
-        {/* Stars fade in as entropy rises? Or just subtle bg? 
-            User wants "4k clean start". Stars are fine if subtle, but let's hide them initially if precise.
-            Let's keep them very faint or remove. Prompt said "4k clean". 
-            Let's assume simple black bg is cleanest.
-        */}
         {/* Stars removed for performance and 4k clean aesthetic. 
             Background is pure void black as requested. 
         */}
         
         <Suspense fallback={null}>
-          <ScrollControls pages={MOCK_NEWS.length * 0.7} damping={0.2} distance={1}>
+          <ScrollControls pages={MOCK_NEWS.length * 0.7} damping={0.15} distance={1}> {/* Less damping for snappier mobile feel? Or more? 0.2 is standard. */}
             <Scroll>
               <NewsFeed />
             </Scroll>
