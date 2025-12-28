@@ -1,56 +1,69 @@
 import { create } from 'zustand';
+import { MOCK_NEWS } from '../lib/mockData';
 
 export interface NewsItem {
+  id: number;
   title: string;
-  image: string;
   source: string;
   date: string;
-  url: string;
+  image: string;
+  summary: string; // Added for redaction demo
 }
 
 interface AppState {
   entropyLevel: number;
   newsData: NewsItem[];
-  isRepairing: boolean;
-  repairEndTime: number | null;
-  setEntropyLevel: (level: number) => void; // Deprecated for external use in favor of increase only, but kept for reset
-  increaseEntropyTo: (targetLevel: number) => void;
+  isLocked: boolean;
+  lockoutTime: number | null;
+  
+  setEntropyLevel: (level: number) => void;
   setNewsData: (data: NewsItem[]) => void;
-  startRepair: (durationMs: number) => void;
-  checkRepairStatus: () => void;
+  triggerLockout: () => void;
+  checkLockout: () => void;
+  quickYield: () => void; // Dev tool
 }
 
 export const useStore = create<AppState>((set, get) => ({
   entropyLevel: 0,
   newsData: [],
-  isRepairing: false,
-  repairEndTime: null,
-  setEntropyLevel: (level) => set({ entropyLevel: level }),
-  increaseEntropyTo: (targetLevel) => set((state) => ({ 
-    // Irreversible: only increase, never decrease (unless we explicitly reset, which isn't requested yet)
-    entropyLevel: Math.max(state.entropyLevel, Math.min(1.0, targetLevel)) 
-  })),
-  setNewsData: (data) => set({ newsData: data }),
-  startRepair: (durationMs) => {
-    const endTime = Date.now() + durationMs;
-    // Persist to localStorage if needed, simple state for now
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('vanitas_repair_end', endTime.toString());
-    }
-    set({ isRepairing: true, repairEndTime: endTime });
+  isLocked: false,
+  lockoutTime: null,
+
+  setEntropyLevel: (level) => {
+      // Entropy only goes UP? Or dynamic with scroll?
+      // Prompt says "Increases with scroll depth".
+      // Let's make it reflect current depth strictly for this version 'Signal Loss'.
+      set({ entropyLevel: Math.min(1.0, Math.max(0, level)) });
+      
+      if (get().entropyLevel >= 1.0 && !get().isLocked) {
+          get().triggerLockout();
+      }
   },
-  checkRepairStatus: () => {
-    if (typeof window !== 'undefined') {
-        const storedEnd = localStorage.getItem('vanitas_repair_end');
-        if (storedEnd) {
-            const remaining = parseInt(storedEnd) - Date.now();
-            if (remaining > 0) {
-                 set({ isRepairing: true, repairEndTime: parseInt(storedEnd) });
-            } else {
-                 set({ isRepairing: false, repairEndTime: null, entropyLevel: 0 }); // Reset on complete?
-                 localStorage.removeItem('vanitas_repair_end');
-            }
-        }
-    }
+
+  setNewsData: (data) => set({ newsData: data }),
+  
+  triggerLockout: () => {
+      const lockTime = Date.now() + (60 * 60 * 1000); // 1 hour
+      localStorage.setItem('vanitas_lockout', lockTime.toString());
+      set({ isLocked: true, lockoutTime: lockTime });
+  },
+
+  checkLockout: () => {
+      const stored = localStorage.getItem('vanitas_lockout');
+      if (stored) {
+          const time = parseInt(stored);
+          if (time > Date.now()) {
+              set({ isLocked: true, lockoutTime: time });
+          } else {
+              set({ isLocked: false, lockoutTime: null });
+              localStorage.removeItem('vanitas_lockout');
+          }
+      }
+  },
+  
+  quickYield: () => {
+      // Dev helper to unlock
+      localStorage.removeItem('vanitas_lockout');
+      set({ isLocked: false, lockoutTime: null, entropyLevel: 0.99 });
   }
 }));
