@@ -88,24 +88,18 @@ import { useThree } from '@react-three/fiber';
 // Wrapper to control effects based on entropy
 const DynamicEffects = () => {
     const entropy = useStore((state) => state.entropyLevel);
-    // We want 0 distortion at start.
-    // Noise opacity 0 -> 0.3 as entropy 0 -> 0.5
-    // Vignette opacity?
     
-    // Note: Changing props on PostProcessing effects can be expensive if it causes shader recompilation.
-    // However, opacity on Noise is usually a uniform.
-    // Let's try controlling it. If laggy, we might need a custom shader pass or just step it.
-    
-    // Threshold: "clean 4k website" until scroll starts.
-    // Let's ramp it up quickly after 0.05 entropy.
+    // Smooth ramp up
+    // We keep the Composer mounted but set opacity/blend to 0 effectively
+    // However, some effects don't support "enabled" prop easily.
+    // Ideally we use a manually controlled pass, but for speed:
+    // We accept small overhead of composer being present, but noise opacity 0 is cheap.
     
     const noiseOpacity = Math.min(0.5, Math.max(0, (entropy - 0.05) * 0.8));
     const vigDarkness = 0.5 + Math.min(0.6, entropy); // 0.5 to 1.1
 
-    if (entropy < 0.01) return null; // Completely clean start
-
     return (
-        <EffectComposer>
+        <EffectComposer enabled={entropy > 0.01}>
             <Noise opacity={noiseOpacity} />
             <Vignette eskil={false} offset={0.1} darkness={vigDarkness} />
         </EffectComposer>
@@ -183,7 +177,9 @@ export default function Experience() {
             Let's keep them very faint or remove. Prompt said "4k clean". 
             Let's assume simple black bg is cleanest.
         */}
-        <Stars radius={50} depth={50} count={2000} factor={4} saturation={0} fade speed={1} />
+        {/* Stars removed for performance and 4k clean aesthetic. 
+            Background is pure void black as requested. 
+        */}
         
         <Suspense fallback={null}>
           <ScrollControls pages={MOCK_NEWS.length * 0.7} damping={0.2} distance={1}>

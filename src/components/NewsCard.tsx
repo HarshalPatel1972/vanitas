@@ -40,22 +40,23 @@ export const NewsCard: React.FC<NewsCardProps> = ({ item, position }) => {
 
   return (
     <group position={position}>
-      {/* Image Plane */}
+      {/* Image Plane - Optimized Geometry */}
       <mesh position={[0, 0, 0]}>
-        <planeGeometry args={[4, 3, 32, 32]} />
+        <planeGeometry args={[4, 3, 20, 20]} />
         {/* @ts-expect-error - Custom element */}
         <vanitasMeltMaterial ref={imageMaterialRef} uTexture={texture} transparent />
       </mesh>
 
       {/* Title Text */}
       <Text
-        position={[-1.8, -1.8, 0.1]}
-        fontSize={0.25}
+        position={[-1.9, -1.8, 0.05]}
+        fontSize={0.22}
         color="#E0E0E0"
         anchorX="left"
         anchorY="top"
         maxWidth={3.8}
-        // font URL removed for stability
+        lineHeight={1.2}
+        font="https://fonts.gstatic.com/s/inter/v13/UcCO3FwrK3iLTeHuS_fvQtMwCp50KnMw2boKoduKmMEVuLyfAZ9hjp-Ek-_EeA.woff"
       >
         {item.title}
       </Text>
