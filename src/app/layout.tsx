@@ -1,23 +1,32 @@
+import type { Metadata } from 'next';
+import { Playfair_Display, JetBrains_Mono } from 'next/font/google';
+import './globals.css';
 
-import './globals.css'
-import type { Metadata } from 'next'
+const playfair = Playfair_Display({ 
+  subsets: ['latin'],
+  variable: '--font-playfair'
+});
+
+const jetbrains = JetBrains_Mono({ 
+  subsets: ['latin'],
+  variable: '--font-jetbrains'
+});
 
 export const metadata: Metadata = {
-  title: 'VANITAS - The Finite Feed',
-  description: 'A digital memento mori.',
-}
+  title: 'VANITAS',
+  description: 'News is not infinite.',
+};
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode
+  children: React.ReactNode;
 }) {
   return (
     <html lang="en">
-      <head>
-        <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Editorial+New&display=swap" rel="stylesheet" />
-      </head>
-      <body>{children}</body>
+      <body className={`${playfair.variable} ${jetbrains.variable} antialiased`}>
+        {children}
+      </body>
     </html>
-  )
+  );
 }

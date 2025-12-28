@@ -1,16 +1,27 @@
+import { create } from 'zustand';
 
-import { create } from 'zustand'
-
-interface State {
-  entropyLevel: number
-  setEntropyLevel: (level: number) => void
-  isRecompiling: boolean
-  setIsRecompiling: (status: boolean) => void
+export interface NewsItem {
+  title: string;
+  image: string;
+  source: string;
+  date: string;
+  url: string;
 }
 
-export const useStore = create<State>((set) => ({
+interface AppState {
+  entropyLevel: number;
+  newsData: NewsItem[];
+  setEntropyLevel: (level: number) => void;
+  setNewsData: (data: NewsItem[]) => void;
+  increaseEntropy: (amount: number) => void;
+}
+
+export const useStore = create<AppState>((set) => ({
   entropyLevel: 0,
+  newsData: [],
   setEntropyLevel: (level) => set({ entropyLevel: level }),
-  isRecompiling: false,
-  setIsRecompiling: (status) => set({ isRecompiling: status }),
-}))
+  setNewsData: (data) => set({ newsData: data }),
+  increaseEntropy: (amount) => set((state) => ({ 
+    entropyLevel: Math.min(1.0, state.entropyLevel + amount) 
+  })),
+}));
