@@ -138,16 +138,15 @@ const RepairOverlay = () => {
                 <h1 className="text-4xl font-bold mb-4 glitch-text">SYSTEM RECOMPILING</h1>
                 <p className="text-xl mb-8">REALITY INTEGRITY RESTORING...</p>
                 <div className="text-6xl font-black">{timeLeft}</div>
-                <div className="text-6xl font-black">{timeLeft}</div>
                 <p className="mt-8 text-sm opacity-50">Please touch grass while you wait.</p>
                 
-                {/* DEV ONLY: Quick Fix */}
+                {/* DEV ONLY: Quick Fix - Made more visible as requested */}
                 <button 
                     onClick={() => startRepair(100)} 
-                    className="absolute bottom-4 right-4 text-xs text-gray-800 hover:text-gray-500 uppercase"
+                    className="mt-8 border border-white/20 px-4 py-2 text-xs text-white/50 hover:text-white hover:border-white uppercase tracking-widest transition-all"
                     title="Dev: Instant Fix"
                 >
-                    [DEV: QUICK YIELD]
+                    [DEV: QUICK YIELD (UNLOCK NOW)]
                 </button>
             </div>
         );
