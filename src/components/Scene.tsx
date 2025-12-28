@@ -8,9 +8,9 @@ import { Preload } from '@react-three/drei'
 
 export function Scene() {
   return (
-    <div className="h-screen w-full relative z-10">
+    <div className="absolute inset-0 z-10">
       <Canvas
-        camera={{ position: [0, 0, 5], fov: 35 }} // Narrow FOV for editorial look
+        camera={{ position: [0, 0, 6], fov: 35 }} // Moved camera back slightly
         gl={{ 
           antialias: true, 
           alpha: true,

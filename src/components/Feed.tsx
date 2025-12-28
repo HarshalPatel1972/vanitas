@@ -53,8 +53,8 @@ function FeedContent() {
 
 export function Feed() {
   return (
-    // Damping 0.1 for that heavy, "luxurious" inertial feel
-    <ScrollControls pages={POSTS.length * 0.4} damping={0.1}>
+    // Damping 0.2 for better response, Pages optimized for viewport
+    <ScrollControls pages={POSTS.length * 0.8} damping={0.2} distance={1}>
       <Scroll>
         <FeedContent />
       </Scroll>
